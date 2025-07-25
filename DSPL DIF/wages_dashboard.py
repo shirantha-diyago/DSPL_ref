@@ -16,7 +16,8 @@ st.set_page_config(
 @st.cache_data
 def load_data():
     # Load the CSV file - using forward slashes works on Windows too
-    df = pd.read_csv('https://github.com/shirantha-diyago/DSPL_ref/blob/main/DSPL%20DIF/average_daily_wages_of_informal_sector_.csv', skiprows=4)
+    df = pd.read_csv('https://raw.githubusercontent.com/shirantha-diyago/DSPL_ref/main/DSPL%20DIF/average_daily_wages_of_informal_sector_.csv', skiprows=4)
+
     
     # Clean and reshape the data
     df_clean = df.copy()
