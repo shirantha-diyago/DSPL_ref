@@ -12,6 +12,7 @@ st.set_page_config(
     layout="wide"
 )
 
+<<<<<<< HEAD
 @st.cache_data
 def load_data():
     import os
@@ -49,6 +50,13 @@ def load_data():
         return pd.DataFrame()  # Return empty DataFrame
     
     st.success(f"✅ Successfully loaded data from: {used_path}")
+=======
+# Load and preprocess data
+@st.cache_data
+def load_data():
+    # Load the CSV file - using forward slashes works on Windows too
+    df = pd.read_csv('average_daily_wages_of_informal_sector_.csv')
+>>>>>>> e0dc57617d0145800123ff494e79daeeeecce5bc
     
     # Clean and reshape the data
     df_clean = df.copy()
@@ -57,9 +65,12 @@ def load_data():
     for col in df_clean.columns[1:]:  # Skip first column
         df_clean[col] = pd.to_numeric(df_clean[col].astype(str).str.replace('-', ''), errors='coerce')
     
+<<<<<<< HEAD
     # Rest of your existing data processing code...
     # (Keep everything else the same from here)
     
+=======
+>>>>>>> e0dc57617d0145800123ff494e79daeeeecce5bc
     # Melt the dataframe to long format
     df_melted = df_clean.melt(
         id_vars=['Province and Sector'],
