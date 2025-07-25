@@ -12,51 +12,15 @@ st.set_page_config(
     layout="wide"
 )
 
-<<<<<<< HEAD
 @st.cache_data
 def load_data():
-    import os
-    
-    # Debug: Show current working directory and files
-    current_dir = os.getcwd()
-    files_in_dir = os.listdir(current_dir)
-    
-    # Try multiple possible paths
-    possible_paths = [
-        'average_daily_wages_of_informal_sector_.csv',
-        './average_daily_wages_of_informal_sector_.csv',
-        'DSPL DIF/average_daily_wages_of_informal_sector_.csv',
-        './DSPL DIF/average_daily_wages_of_informal_sector_.csv'
-    ]
-    
-    df = None
-    used_path = None
-    
-    for path in possible_paths:
-        try:
-            if os.path.exists(path):
-                df = pd.read_csv(path)
-                used_path = path
-                break
-        except Exception as e:
-            continue
-    
-    if df is None:
-        # Show debug information
-        st.error(f"❌ Could not find CSV file. Debug info:")
-        st.write(f"Current directory: {current_dir}")
-        st.write(f"Files in current directory: {files_in_dir}")
-        st.write(f"Tried paths: {possible_paths}")
-        return pd.DataFrame()  # Return empty DataFrame
-    
-    st.success(f"✅ Successfully loaded data from: {used_path}")
-=======
-# Load and preprocess data
-@st.cache_data
-def load_data():
-    # Load the CSV file - using forward slashes works on Windows too
-    df = pd.read_csv('average_daily_wages_of_informal_sector_.csv')
->>>>>>> e0dc57617d0145800123ff494e79daeeeecce5bc
+    try:
+        # For deployment, keep CSV in same directory as Python file
+        df = pd.read_csv('average_daily_wages_of_informal_sector_.csv')
+        st.success("✅ Successfully loaded data")
+    except FileNotFoundError:
+        st.error("❌ CSV file not found. Please ensure the data file is uploaded.")
+        return pd.DataFrame()
     
     # Clean and reshape the data
     df_clean = df.copy()
@@ -65,12 +29,6 @@ def load_data():
     for col in df_clean.columns[1:]:  # Skip first column
         df_clean[col] = pd.to_numeric(df_clean[col].astype(str).str.replace('-', ''), errors='coerce')
     
-<<<<<<< HEAD
-    # Rest of your existing data processing code...
-    # (Keep everything else the same from here)
-    
-=======
->>>>>>> e0dc57617d0145800123ff494e79daeeeecce5bc
     # Melt the dataframe to long format
     df_melted = df_clean.melt(
         id_vars=['Province and Sector'],
@@ -150,11 +108,12 @@ def main():
     # Load data
     try:
         df = load_data()
-    except FileNotFoundError:
-        st.error("❌ Could not find the CSV file. Please ensure 'average_daily_wages_of_informal_sector_.csv' is in the 'desktop/data_sets/' folder.")
-        return
     except Exception as e:
         st.error(f"❌ Error loading data: {str(e)}")
+        return
+    
+    if df.empty:
+        st.error("❌ No data available. Please check your data file.")
         return
     
     # Sidebar filters
