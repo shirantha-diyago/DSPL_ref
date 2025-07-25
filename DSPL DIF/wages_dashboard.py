@@ -12,11 +12,77 @@ st.set_page_config(
     layout="wide"
 )
 
-# Load and preprocess data
 @st.cache_data
 def load_data():
-    # Load the CSV file - using forward slashes works on Windows too
-    df = pd.read_csv('https://raw.githubusercontent.com/shirantha-diyago/DSPL_ref/main/DSPL%20DIF/average_daily_wages_of_informal_sector_.csv', skiprows=4)
+    df = pd.read_csv('https://raw.githubusercontent.com/shirantha-diyago/DSPL_ref/main/DSPL%20DIF/average_daily_wages_of_informal_sector_.csv')
+    df.columns = df.columns.str.strip()  # Clean column names
+
+    df_clean = df.copy()
+
+    for col in df_clean.columns[1:]:
+        df_clean[col] = pd.to_numeric(df_clean[col].astype(str).str.replace('-', ''), errors='coerce')
+
+    df_melted = df_clean.melt(
+        id_vars=['Province and Sector'],
+        var_name='Year',
+        value_name='Daily_Wage'
+    )
+
+    df_melted['Province'] = ''
+    df_melted['Sector'] = ''
+    df_melted['Job_Category'] = ''
+    df_melted['Gender'] = 'Male'
+
+    current_province = ''
+    current_sector = ''
+    current_job = ''
+
+    for i, row in df_melted.iterrows():
+        sector_info = str(row['Province and Sector']).strip()
+
+        if sector_info == 'nan' or sector_info == '':
+            continue
+
+        if 'Province' in sector_info or sector_info == 'All Island (d )':
+            current_province = sector_info.replace('Province', '').strip()
+            if sector_info == 'All Island (d )':
+                current_province = 'All Island'
+            continue
+
+        if 'Sector' in sector_info:
+            current_sector = sector_info.replace('Sector', '').strip()
+            continue
+
+        if sector_info in ['Tea', 'Rubber', 'Coconut', 'Paddy', 'Carpentry', 'Masonry']:
+            current_job = sector_info
+            continue
+
+        if sector_info in ['Male', 'Femal']:
+            gender = 'Female' if sector_info == 'Femal' else 'Male'
+            df_melted.at[i, 'Gender'] = gender
+            df_melted.at[i, 'Job_Category'] = current_job
+        else:
+            if 'Male' in sector_info:
+                df_melted.at[i, 'Gender'] = 'Male'
+                df_melted.at[i, 'Job_Category'] = sector_info.replace('- Male', '').strip()
+            elif 'Female' in sector_info:
+                df_melted.at[i, 'Gender'] = 'Female'
+                df_melted.at[i, 'Job_Category'] = sector_info.replace('- Female', '').strip()
+            else:
+                df_melted.at[i, 'Job_Category'] = sector_info
+
+        df_melted.at[i, 'Province'] = current_province
+        df_melted.at[i, 'Sector'] = current_sector
+
+    df_final = df_melted[
+        (df_melted['Province'] != '') &
+        (df_melted['Daily_Wage'].notna()) &
+        (df_melted['Daily_Wage'] > 0)
+    ].copy()
+
+    df_final['Year'] = df_final['Year'].astype(int)
+
+    return df_final
 
     
     # Clean and reshape the data
