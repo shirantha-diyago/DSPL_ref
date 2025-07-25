@@ -15,12 +15,31 @@ st.set_page_config(
 @st.cache_data
 def load_data():
     try:
-        # For deployment, keep CSV in same directory as Python file
-        df = pd.read_csv('average_daily_wages_of_informal_sector_.csv')
-        st.success("✅ Successfully loaded data")
-    except FileNotFoundError:
-        st.error("❌ CSV file not found. Please ensure the data file is uploaded.")
+        # Try different possible paths for the CSV file
+        possible_paths = [
+            'average_daily_wages_of_informal_sector_.csv',
+            '../average_daily_wages_of_informal_sector_.csv',
+            './average_daily_wages_of_informal_sector_.csv',https://github.com/shirantha-diyago/DSPL_ref/blob/master/DSPL%20DIF/average_daily_wages_of_informal_sector_.csv ,
+              https://github.com/shirantha-diyago/DSPL_ref/blob/main/DSPL%20DIF/average_daily_wages_of_informal_sector_.csv
+        ]
+        
+        df = None
+        for path in possible_paths:
+            try:
+                df = pd.read_csv(path)
+                st.success(f"✅ Successfully loaded data from: {path}")
+                break
+            except:
+                continue
+        
+        if df is None:
+            st.error("❌ CSV file not found. Please ensure the data file is uploaded.")
+            return pd.DataFrame()
+            
+    except Exception as e:
+        st.error(f"❌ Error loading data: {str(e)}")
         return pd.DataFrame()
+    
     
     # Clean and reshape the data
     df_clean = df.copy()
